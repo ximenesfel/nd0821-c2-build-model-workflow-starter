@@ -25,7 +25,7 @@ def go(args):
     # YOUR CODE HERE     #
     ######################
 
-    local_path = wandb.use_artifact("sample.csv:latest").file()
+    local_path = run.use_artifact("sample.csv:latest").file()
 
     logger.info("Create a dataframe from input artifact")
     df = pd.read_csv(local_path)

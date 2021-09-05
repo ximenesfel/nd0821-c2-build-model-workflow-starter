@@ -54,7 +54,7 @@ def go(args):
     ######################################
     # Use run.use_artifact(...).file() to get the train and validation artifact (args.trainval_artifact)
     # and save the returned path in train_local_pat
-    trainval_local_path = wandb.use_artifact(args.trainval_artifact).file()
+    trainval_local_path = run.use_artifact(args.trainval_artifact).file()
     ######################################
 
     X = pd.read_csv(trainval_local_path)
@@ -94,13 +94,20 @@ def go(args):
     # Save model package in the MLFlow sklearn format
     if os.path.exists("random_forest_dir"):
         shutil.rmtree("random_forest_dir")
+    
+    export_path = "random_forest_dir"
 
     ######################################
     # Save the sk_pipe pipeline as a mlflow.sklearn model in the directory "random_forest_dir"
     # HINT: use mlflow.sklearn.save_model
     # YOUR CODE HERE
     ######################################
-    mlflow.sklearn.save_model(sk_pipe, "random_forest_dir")
+    mlflow.sklearn.save_model(
+        sk_pipe,
+        export_path,
+        serialization_format=mlflow.sklearn.SERIALIZATION_FORMAT_CLOUDPICKLE,
+        input_example=X_val.iloc[:2],
+    )
 
     ######################################
     # Upload the model we just exported to W&B
@@ -114,8 +121,9 @@ def go(args):
                               type="model_export",
                               description="Random forest pipeline export",
                               metadata=rf_config)
-    artifact.add_dir("random_forest_dir")
+    artifact.add_dir(export_path)
     run.log_artifact(artifact)
+    artifact.wait()
 
     # Plot feature importance
     fig_feat_imp = plot_feature_importance(sk_pipe, processed_features)
