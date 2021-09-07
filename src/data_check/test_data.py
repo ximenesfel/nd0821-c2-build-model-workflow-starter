@@ -74,5 +74,6 @@ def test_price_range(data, min_price, max_price):
     """
     Test checks if the price range is between correct range
     """
-    price_range = data['price'].between(min_price, max_price)
-    assert price_range.empty == False
+    total_itens_inside_range = data['price'].between(min_price, max_price).value_counts()[True]
+
+    assert data.shape[0] == total_itens_inside_range
